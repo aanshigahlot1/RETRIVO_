@@ -63,7 +63,10 @@ export default function Found() {
               form.location.trim().toLowerCase()
           ) {
             // confirmation link
-           const confirmLink =`${window.location.origin}/confirm?lost=${id}&found=${newFound.key}`;
+           const base = import.meta.env.BASE_URL;
+
+const confirmLink =
+`${window.location.origin}${base}confirm?lost=${id}&found=${newFound.key}`;
 
             // send email
             sendConfirmationEmail({

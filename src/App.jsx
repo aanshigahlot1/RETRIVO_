@@ -9,7 +9,7 @@ import Confirm from "./Pages/Confirm";
 
 export default function App() {
   return (
-    <BrowserRouter basename="/RETRIVO_">
+    <BrowserRouter basename={import.meta.env.BASE_URL}> 
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/lost" element={<Lost />} />

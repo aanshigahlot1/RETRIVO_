@@ -11,31 +11,39 @@ export default function Confirm() {
   const [finder, setFinder] = useState(null);
 
   useEffect(() => {
-    const lostId = searchParams.get("lost");
-    const foundId = searchParams.get("found");
-
-    if (!lostId || !foundId) {
-      setStatus("❌ Invalid or expired confirmation link.");
-      return;
-    }
+    let isMounted = true; // prevents double execution
 
     const processConfirmation = async () => {
+      const lostId = searchParams.get("lost");
+      const foundId = searchParams.get("found");
+
+      if (!lostId || !foundId) {
+        if (isMounted) {
+          setStatus("❌ Invalid or expired confirmation link.");
+        }
+        return;
+      }
+
       try {
         const lostRef = ref(db, `lostItems/${lostId}`);
         const foundRef = ref(db, `foundItems/${foundId}`);
 
-        const lostSnap = await get(lostRef);
-        const foundSnap = await get(foundRef);
+        const [lostSnap, foundSnap] = await Promise.all([
+          get(lostRef),
+          get(foundRef),
+        ]);
 
         if (!lostSnap.exists() || !foundSnap.exists()) {
-          setStatus("⚠️ This item has already been resolved.");
+          if (isMounted) {
+            setStatus("⚠️ This item has already been resolved.");
+          }
           return;
         }
 
         const lostData = lostSnap.val();
         const foundData = foundSnap.val();
 
-        // Save in history
+        // Move to history
         await push(ref(db, "historyItems"), {
           lost: lostData,
           found: foundData,
@@ -43,21 +51,30 @@ export default function Confirm() {
         });
 
         // Remove from active lists
-        await remove(lostRef);
-        await remove(foundRef);
+        await Promise.all([
+          remove(lostRef),
+          remove(foundRef),
+        ]);
 
-        // Show finder details
-        setFinder(foundData);
+        if (isMounted) {
+          setFinder(foundData);
+          setStatus("✅ Item recovery confirmed successfully!");
+        }
 
-        setStatus("✅ Item recovery confirmed successfully!");
       } catch (error) {
-        console.error(error);
-        setStatus("❌ Something went wrong. Please try again.");
+        console.error("Confirmation error:", error);
+        if (isMounted) {
+          setStatus("❌ Something went wrong. Please try again.");
+        }
       }
     };
 
     processConfirmation();
-  }, []);
+
+    return () => {
+      isMounted = false;
+    };
+  }, [searchParams]);
 
   return (
     <>
@@ -72,7 +89,6 @@ export default function Confirm() {
 
           <p className="text-gray-700 text-lg mb-6">{status}</p>
 
-          {/* Finder Contact Section */}
           {finder && (
             <div className="bg-green-100 rounded-xl p-5 mt-4 text-left">
               <h2 className="text-lg font-semibold text-green-800 mb-3">
@@ -96,6 +112,7 @@ export default function Confirm() {
               </p>
             </div>
           )}
+
         </div>
       </div>
     </>
