@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { HashRouter, Routes, Route } from "react-router-dom";
 
 import Home from "./Pages/Home";
 import Lost from "./Pages/Lost";
@@ -9,7 +9,7 @@ import Confirm from "./Pages/Confirm";
 
 export default function App() {
   return (
-    <BrowserRouter basename={import.meta.env.BASE_URL}> 
+    <HashRouter>
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/lost" element={<Lost />} />
@@ -18,6 +18,6 @@ export default function App() {
         <Route path="/history" element={<History />} />
         <Route path="/confirm" element={<Confirm />} />
       </Routes>
-    </BrowserRouter>
+    </HashRouter>
   );
 }
